@@ -1,0 +1,1526 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CreIA — Mi Academia</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<!-- ✅ SUPABASE SDK -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --black: #0a0a0a;
+    --surface: #111111;
+    --surface2: #1a1a1a;
+    --surface3: #222222;
+    --border: rgba(255,255,255,0.07);
+    --white: #f8f6f1;
+    --gray: #888880;
+    --gray-light: #555550;
+    --accent: #c8b89a;
+    --accent2: #e8d5b0;
+    --green: #4ade80;
+    --serif: 'Playfair Display', Georgia, serif;
+    --sans: 'DM Sans', sans-serif;
+    --mono: 'DM Mono', monospace;
+  }
+
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--black);
+    color: var(--white);
+    font-family: var(--sans);
+    font-weight: 300;
+    min-height: 100vh;
+  }
+
+  /* ── LOADING SCREEN ── */
+  #loadingScreen {
+    position: fixed; inset: 0;
+    background: var(--black);
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    transition: opacity 0.4s ease;
+  }
+  #loadingScreen.hidden { opacity: 0; pointer-events: none; }
+
+  .loading-logo {
+    font-family: var(--serif);
+    font-size: 2rem;
+    font-weight: 900;
+    font-style: italic;
+  }
+
+  .loading-bar {
+    width: 120px;
+    height: 2px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .loading-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 2px;
+    animation: loadAnim 1.2s ease infinite;
+  }
+  @keyframes loadAnim {
+    0% { width: 0%; margin-left: 0; }
+    50% { width: 70%; margin-left: 30%; }
+    100% { width: 0%; margin-left: 100%; }
+  }
+
+  /* ── TOAST ── */
+  #toast {
+    position: fixed;
+    bottom: 2rem; right: 2rem;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0.9rem 1.4rem;
+    font-size: 0.82rem;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    z-index: 500;
+    transform: translateY(6rem);
+    opacity: 0;
+    transition: all 0.35s cubic-bezier(0.34,1.56,0.64,1);
+    max-width: 300px;
+  }
+  #toast.show { transform: translateY(0); opacity: 1; }
+  #toast.success { border-color: rgba(74,222,128,0.3); }
+  #toast.error { border-color: rgba(248,113,113,0.3); }
+
+  /* ── COMPLETE BTN ── */
+  .btn-complete {
+    background: transparent;
+    color: var(--green);
+    border: 1px solid rgba(74,222,128,0.3);
+    padding: 0.7rem 1.4rem;
+    font-family: var(--sans);
+    font-size: 0.78rem;
+    font-weight: 500;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+  }
+  .btn-complete:hover { background: rgba(74,222,128,0.1); }
+
+  /* ── SIDEBAR ── */
+  .layout {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    min-height: 100vh;
+  }
+
+  .sidebar {
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    position: fixed;
+    top: 0; left: 0; bottom: 0;
+    width: 220px;
+    display: flex;
+    flex-direction: column;
+    padding: 2rem 0;
+    z-index: 50;
+    overflow-y: auto;
+  }
+
+  .sidebar-logo {
+    font-family: var(--serif);
+    font-size: 1.5rem;
+    font-weight: 900;
+    font-style: italic;
+    padding: 0 1.5rem 2rem;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 1.5rem;
+    color: var(--white);
+    text-decoration: none;
+    display: block;
+  }
+
+  .sidebar-section {
+    font-family: var(--mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gray);
+    padding: 0 1.5rem;
+    margin-bottom: 0.6rem;
+    margin-top: 1rem;
+  }
+
+  .sidebar-link {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    padding: 0.65rem 1.5rem;
+    font-size: 0.82rem;
+    font-weight: 400;
+    color: var(--gray);
+    text-decoration: none;
+    border-left: 2px solid transparent;
+    transition: all 0.2s;
+    cursor: pointer;
+  }
+  .sidebar-link:hover { color: var(--white); background: rgba(255,255,255,0.04); }
+  .sidebar-link.active { color: var(--white); border-left-color: var(--accent); background: rgba(200,184,154,0.08); }
+
+  .sidebar-link .icon { font-size: 1rem; width: 20px; text-align: center; }
+
+  .sidebar-progress {
+    margin: 1.5rem 1.5rem 0;
+    padding: 1rem;
+    background: var(--surface2);
+    border-radius: 4px;
+    border: 1px solid var(--border);
+  }
+
+  .sp-label {
+    font-family: var(--mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--gray);
+    margin-bottom: 0.5rem;
+  }
+
+  .sp-bar {
+    background: var(--surface3);
+    height: 4px;
+    border-radius: 2px;
+    margin-bottom: 0.4rem;
+    overflow: hidden;
+  }
+
+  .sp-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    border-radius: 2px;
+    width: 25%;
+    transition: width 0.6s ease;
+  }
+
+  .sp-text {
+    font-size: 0.72rem;
+    color: var(--gray);
+  }
+  .sp-text span { color: var(--accent); font-weight: 500; }
+
+  .sidebar-user {
+    margin-top: auto;
+    padding: 1.2rem 1.5rem;
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+  }
+
+  .user-avatar {
+    width: 32px; height: 32px;
+    background: var(--accent);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--serif);
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--black);
+    flex-shrink: 0;
+  }
+
+  .user-info { flex: 1; min-width: 0; }
+  .user-name {
+    font-size: 0.78rem;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .user-plan {
+    font-family: var(--mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.1em;
+    color: var(--accent);
+    text-transform: uppercase;
+  }
+
+  /* ── MAIN ── */
+  .main {
+    margin-left: 220px;
+    min-height: 100vh;
+  }
+
+  /* ── TOP NAV ── */
+  .topnav {
+    position: sticky; top: 0; z-index: 40;
+    background: rgba(10,10,10,0.9);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 1rem 2.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .topnav-title {
+    font-family: var(--serif);
+    font-size: 1.1rem;
+    font-weight: 700;
+  }
+
+  .search-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 0.45rem 0.9rem;
+  }
+
+  .search-bar input {
+    background: none;
+    border: none;
+    outline: none;
+    color: var(--white);
+    font-family: var(--sans);
+    font-size: 0.8rem;
+    width: 180px;
+  }
+  .search-bar input::placeholder { color: var(--gray); }
+
+  /* ── HERO BANNER ── */
+  .hero-banner {
+    margin: 2rem 2.5rem;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 2.5rem 3rem;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: 2rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero-banner::before {
+    content: '';
+    position: absolute;
+    right: -2rem; top: -2rem;
+    width: 200px; height: 200px;
+    background: radial-gradient(circle, rgba(200,184,154,0.15) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .banner-tag {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 0.7rem;
+  }
+
+  .banner-title {
+    font-family: var(--serif);
+    font-size: 1.8rem;
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: 0.7rem;
+  }
+  .banner-title em { font-style: italic; color: var(--accent); }
+
+  .banner-sub {
+    font-size: 0.85rem;
+    color: var(--gray);
+    line-height: 1.6;
+  }
+
+  .btn-continue {
+    background: var(--accent);
+    color: var(--black);
+    padding: 0.8rem 1.8rem;
+    font-family: var(--sans);
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.2s, transform 0.2s;
+    text-decoration: none;
+    display: inline-block;
+  }
+  .btn-continue:hover { background: var(--accent2); transform: translateY(-1px); }
+
+  /* ── SECTIONS ── */
+  .section {
+    padding: 0 2.5rem 2.5rem;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: baseline;
+    gap: 1rem;
+    margin-bottom: 1.2rem;
+  }
+
+  .section-title {
+    font-family: var(--serif);
+    font-size: 1.2rem;
+    font-weight: 700;
+  }
+
+  .section-count {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.15em;
+    color: var(--gray);
+    text-transform: uppercase;
+  }
+
+  /* ── MODULE CARDS ── */
+  .modules-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 1rem;
+  }
+
+  .mod-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+    position: relative;
+  }
+  .mod-card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(200,184,154,0.3);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.4);
+  }
+
+  .mod-thumb {
+    height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.5rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .mod-thumb-bg {
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+    background-size: 20px 20px;
+  }
+
+  .mod-status {
+    position: absolute;
+    top: 0.6rem; right: 0.6rem;
+    font-family: var(--mono);
+    font-size: 0.58rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 0.25rem 0.5rem;
+    border-radius: 2px;
+  }
+  .mod-status.done { background: rgba(74,222,128,0.15); color: var(--green); }
+  .mod-status.current { background: rgba(200,184,154,0.15); color: var(--accent); }
+  .mod-status.locked { background: rgba(255,255,255,0.05); color: var(--gray); }
+
+  .mod-progress-bar {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 3px;
+    background: rgba(255,255,255,0.1);
+  }
+  .mod-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+  }
+
+  .mod-body {
+    padding: 1rem;
+  }
+
+  .mod-num {
+    font-family: var(--mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--gray);
+    margin-bottom: 0.4rem;
+  }
+
+  .mod-title {
+    font-family: var(--serif);
+    font-size: 0.95rem;
+    font-weight: 700;
+    line-height: 1.3;
+    margin-bottom: 0.4rem;
+  }
+
+  .mod-meta {
+    font-size: 0.72rem;
+    color: var(--gray);
+    display: flex;
+    gap: 0.8rem;
+  }
+
+  /* ── CONTINUE WATCHING ── */
+  .continue-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 1.2rem 1.4rem;
+    display: flex;
+    align-items: center;
+    gap: 1.2rem;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s;
+    text-decoration: none;
+    color: inherit;
+  }
+  .continue-card:hover { background: var(--surface3); border-color: rgba(200,184,154,0.2); }
+
+  .continue-icon {
+    width: 48px; height: 48px;
+    background: var(--surface3);
+    border-radius: 4px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.4rem;
+    flex-shrink: 0;
+  }
+
+  .continue-info { flex: 1; }
+  .continue-title {
+    font-size: 0.85rem;
+    font-weight: 500;
+    margin-bottom: 0.2rem;
+  }
+  .continue-sub {
+    font-size: 0.72rem;
+    color: var(--gray);
+    margin-bottom: 0.5rem;
+  }
+  .continue-bar {
+    background: rgba(255,255,255,0.08);
+    height: 3px;
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .continue-fill {
+    height: 100%;
+    background: var(--accent);
+  }
+
+  .continue-play {
+    width: 32px; height: 32px;
+    background: var(--accent);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--black);
+    font-size: 0.7rem;
+    flex-shrink: 0;
+    transition: background 0.2s;
+  }
+  .continue-card:hover .continue-play { background: var(--accent2); }
+
+  .continue-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+
+  /* ── RESOURCES ── */
+  .resources-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+  }
+
+  .res-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 1.2rem;
+    cursor: pointer;
+    transition: background 0.2s;
+    text-decoration: none;
+    color: inherit;
+  }
+  .res-card:hover { background: var(--surface3); }
+
+  .res-icon {
+    font-size: 1.6rem;
+    margin-bottom: 0.7rem;
+    display: block;
+  }
+
+  .res-title {
+    font-size: 0.85rem;
+    font-weight: 500;
+    margin-bottom: 0.3rem;
+  }
+
+  .res-sub {
+    font-size: 0.72rem;
+    color: var(--gray);
+    line-height: 1.5;
+  }
+
+  .res-badge {
+    display: inline-block;
+    margin-top: 0.6rem;
+    font-family: var(--mono);
+    font-size: 0.58rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 0.2rem 0.5rem;
+    border-radius: 2px;
+    background: rgba(200,184,154,0.1);
+    color: var(--accent);
+  }
+
+  /* ── CERTIFICATE BANNER ── */
+  .cert-banner {
+    margin: 0 2.5rem 2.5rem;
+    background: var(--surface2);
+    border: 1px solid rgba(200,184,154,0.2);
+    border-radius: 8px;
+    padding: 1.8rem 2.5rem;
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .cert-banner::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(135deg, rgba(200,184,154,0.05) 0%, transparent 60%);
+    pointer-events: none;
+  }
+
+  .cert-icon {
+    font-size: 2.5rem;
+    flex-shrink: 0;
+  }
+
+  .cert-info { flex: 1; }
+  .cert-title {
+    font-family: var(--serif);
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 0.3rem;
+  }
+  .cert-sub {
+    font-size: 0.8rem;
+    color: var(--gray);
+  }
+
+  .btn-cert {
+    background: transparent;
+    color: var(--accent);
+    border: 1px solid var(--accent);
+    padding: 0.6rem 1.4rem;
+    font-family: var(--sans);
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    border-radius: 4px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.2s, color 0.2s;
+  }
+  .btn-cert:hover { background: var(--accent); color: var(--black); }
+
+  /* ── MODAL LESSON ── */
+  .modal-overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.85);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    backdrop-filter: blur(8px);
+  }
+  .modal-overlay.open { display: flex; }
+
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    width: 100%;
+    max-width: 700px;
+    overflow: hidden;
+    animation: scaleIn 0.25s ease;
+  }
+
+  @keyframes scaleIn {
+    from { opacity: 0; transform: scale(0.95); }
+    to   { opacity: 1; transform: scale(1); }
+  }
+
+  .modal-video {
+    background: var(--black);
+    height: 280px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+
+  .modal-play-btn {
+    width: 64px; height: 64px;
+    background: var(--accent);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.5rem;
+    color: var(--black);
+    cursor: pointer;
+    transition: transform 0.2s, background 0.2s;
+  }
+  .modal-play-btn:hover { transform: scale(1.1); background: var(--accent2); }
+
+  .modal-placeholder {
+    position: absolute;
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--gray);
+    bottom: 1rem; left: 1rem;
+  }
+
+  .modal-body {
+    padding: 1.5rem 2rem 2rem;
+  }
+
+  .modal-mod-num {
+    font-family: var(--mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 0.5rem;
+  }
+
+  .modal-title {
+    font-family: var(--serif);
+    font-size: 1.4rem;
+    font-weight: 700;
+    margin-bottom: 0.7rem;
+  }
+
+  .modal-desc {
+    font-size: 0.85rem;
+    line-height: 1.7;
+    color: var(--gray);
+    margin-bottom: 1.5rem;
+  }
+
+  .modal-lessons {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .lesson-item {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    padding: 0.6rem 0.8rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .lesson-item:hover { background: var(--surface2); }
+
+  .lesson-num {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    color: var(--gray);
+    width: 24px;
+    flex-shrink: 0;
+  }
+
+  .lesson-title {
+    font-size: 0.82rem;
+    flex: 1;
+  }
+
+  .lesson-dur {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    color: var(--gray);
+  }
+
+  .lesson-check {
+    width: 16px; height: 16px;
+    border: 1.5px solid var(--border);
+    border-radius: 50%;
+    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.6rem;
+  }
+  .lesson-check.done { background: rgba(74,222,128,0.15); border-color: var(--green); color: var(--green); }
+
+  .modal-actions {
+    display: flex;
+    gap: 0.8rem;
+  }
+
+  .btn-close {
+    background: var(--surface2);
+    color: var(--gray);
+    border: 1px solid var(--border);
+    padding: 0.7rem 1.4rem;
+    font-family: var(--sans);
+    font-size: 0.78rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .btn-close:hover { background: var(--surface3); color: var(--white); }
+
+  /* ── MOBILE ── */
+  .mobile-topbar {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 1rem 1.5rem;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .mobile-menu-btn {
+    background: none;
+    border: none;
+    color: var(--white);
+    font-size: 1.2rem;
+    cursor: pointer;
+  }
+
+  @media (max-width: 768px) {
+    .layout { grid-template-columns: 1fr; }
+    .sidebar { transform: translateX(-100%); transition: transform 0.3s; }
+    .sidebar.open { transform: translateX(0); }
+    .main { margin-left: 0; padding-top: 60px; }
+    .mobile-topbar { display: flex; }
+    .hero-banner { grid-template-columns: 1fr; padding: 1.5rem; }
+    .continue-row { grid-template-columns: 1fr; }
+    .resources-grid { grid-template-columns: 1fr 1fr; }
+    .modules-row { grid-template-columns: 1fr 1fr; }
+    .section { padding: 0 1.2rem 2rem; }
+    .hero-banner { margin: 1rem 1.2rem; }
+    .cert-banner { margin: 0 1.2rem 1.5rem; flex-direction: column; text-align: center; }
+    .topnav { padding: 0.8rem 1.2rem; }
+    .modal { max-width: 100%; }
+  }
+</style>
+</head>
+<body>
+
+<!-- LOADING SCREEN -->
+<div id="loadingScreen">
+  <div class="loading-logo">CreIA</div>
+  <div class="loading-bar"><div class="loading-fill"></div></div>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<!-- MOBILE TOP -->
+<div class="mobile-topbar">
+  <span style="font-family:var(--serif);font-style:italic;font-weight:900;font-size:1.2rem;">CreIA</span>
+  <button class="mobile-menu-btn" onclick="toggleSidebar()">☰</button>
+</div>
+
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <a href="#" class="sidebar-logo">CreIA</a>
+
+    <p class="sidebar-section">Principal</p>
+    <a class="sidebar-link active" onclick="setActive(this)">
+      <span class="icon">🏠</span> Mi Academia
+    </a>
+    <a class="sidebar-link" onclick="setActive(this)">
+      <span class="icon">▶️</span> Seguir viendo
+    </a>
+    <a class="sidebar-link" onclick="setActive(this)">
+      <span class="icon">⭐</span> Favoritos
+    </a>
+
+    <p class="sidebar-section">Programa</p>
+    <a class="sidebar-link" onclick="openModule(0)">
+      <span class="icon">🎯</span> Módulo 1
+    </a>
+    <a class="sidebar-link" onclick="openModule(1)">
+      <span class="icon">🖼️</span> Módulo 2
+    </a>
+    <a class="sidebar-link" onclick="openModule(2)">
+      <span class="icon">🎬</span> Módulo 3
+    </a>
+    <a class="sidebar-link" onclick="openModule(3)">
+      <span class="icon">✍️</span> Módulo 4
+    </a>
+    <a class="sidebar-link" onclick="openModule(4)">
+      <span class="icon">✂️</span> Módulo 5
+    </a>
+    <a class="sidebar-link" onclick="openModule(5)">
+      <span class="icon">💬</span> Módulo 6
+    </a>
+    <a class="sidebar-link" onclick="openModule(6)">
+      <span class="icon">📣</span> Módulo 7
+    </a>
+    <a class="sidebar-link" onclick="openModule(7)">
+      <span class="icon">💡</span> Módulo 8
+    </a>
+
+    <p class="sidebar-section">Recursos</p>
+    <a class="sidebar-link" onclick="setActive(this)">
+      <span class="icon">📋</span> Prompts
+    </a>
+    <a class="sidebar-link" onclick="setActive(this)">
+      <span class="icon">🎁</span> Bonos
+    </a>
+    <a class="sidebar-link" onclick="setActive(this)">
+      <span class="icon">💬</span> Comunidad
+    </a>
+
+    <div class="sidebar-progress">
+      <p class="sp-label">Tu progreso</p>
+      <div class="sp-bar"><div class="sp-fill" id="progressFill"></div></div>
+      <p class="sp-text"><span id="progressText">2 de 8</span> módulos completados</p>
+    </div>
+
+    <div class="sidebar-user">
+      <div class="user-avatar" id="userAvatar">J</div>
+      <div class="user-info">
+        <div class="user-name" id="userName">Cargando...</div>
+        <div class="user-plan">Acceso completo</div>
+      </div>
+      <button onclick="handleLogout()" title="Cerrar sesión" style="background:none;border:none;color:var(--gray);cursor:pointer;font-size:1rem;transition:color 0.2s;" onmouseover="this.style.color='var(--white)'" onmouseout="this.style.color='var(--gray)'">⎋</button>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="main">
+
+    <!-- TOP NAV -->
+    <div class="topnav">
+      <h1 class="topnav-title">Mi Academia</h1>
+      <div class="search-bar">
+        <span style="color:var(--gray);font-size:0.85rem;">🔍</span>
+        <input type="text" placeholder="Buscar módulo o recurso...">
+      </div>
+    </div>
+
+    <!-- HERO BANNER -->
+    <div class="hero-banner">
+      <div>
+        <p class="banner-tag">📍 Continúa donde lo dejaste</p>
+        <h2 class="banner-title" id="bannerTitle">Módulo 1 — <em>Bienvenida y mentalidad IA</em></h2>
+        <p class="banner-sub" id="bannerSub">Cargando tu progreso...</p>
+      </div>
+      <a href="#" class="btn-continue" id="bannerBtn">▶ Continuar</a>
+    </div>
+
+    <!-- CONTINUE WATCHING -->
+    <div class="section">
+      <div class="section-header">
+        <h2 class="section-title">Seguir viendo</h2>
+        <span class="section-count">En progreso</span>
+      </div>
+      <div class="continue-row">
+        <a class="continue-card" href="#" onclick="openModule(1);return false;">
+          <div class="continue-icon">🖼️</div>
+          <div class="continue-info">
+            <div class="continue-title">Módulo 2 · Imágenes hiperrealistas</div>
+            <div class="continue-sub">Lección 3 — Prompts para estilo Pixar</div>
+            <div class="continue-bar"><div class="continue-fill" style="width:45%"></div></div>
+          </div>
+          <div class="continue-play">▶</div>
+        </a>
+        <a class="continue-card" href="#" onclick="openModule(3);return false;">
+          <div class="continue-icon">✍️</div>
+          <div class="continue-info">
+            <div class="continue-title">Módulo 4 · Guiones y hooks</div>
+            <div class="continue-sub">Lección 1 — Estructura del hook perfecto</div>
+            <div class="continue-bar"><div class="continue-fill" style="width:10%"></div></div>
+          </div>
+          <div class="continue-play">▶</div>
+        </a>
+      </div>
+    </div>
+
+    <!-- ALL MODULES -->
+    <div class="section">
+      <div class="section-header">
+        <h2 class="section-title">Todos los módulos</h2>
+        <span class="section-count">8 módulos · 48 lecciones</span>
+      </div>
+      <div class="modules-row" id="modulesGrid">
+        <!-- Renderizado dinámicamente por JS -->
+      </div>
+    </div>
+
+    <!-- RESOURCES -->
+    <div class="section">
+      <div class="section-header">
+        <h2 class="section-title">Recursos descargables</h2>
+        <span class="section-count">Incluidos en tu acceso</span>
+      </div>
+      <div class="resources-grid">
+        <a class="res-card" href="#">
+          <span class="res-icon">📋</span>
+          <div class="res-title">Pack de 50 Prompts</div>
+          <div class="res-sub">Listos para copiar y pegar. Imágenes, videos, copys y más.</div>
+          <span class="res-badge">PDF · Descargable</span>
+        </a>
+        <a class="res-card" href="#">
+          <span class="res-icon">📅</span>
+          <div class="res-title">Calendario de contenido</div>
+          <div class="res-sub">30 días de ideas con IA para cualquier tipo de negocio.</div>
+          <span class="res-badge">Plantilla</span>
+        </a>
+        <a class="res-card" href="#">
+          <span class="res-icon">✅</span>
+          <div class="res-title">Checklist de lanzamiento</div>
+          <div class="res-sub">Todo lo que necesitas antes de publicar tu primer contenido con IA.</div>
+          <span class="res-badge">PDF · Descargable</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- CERTIFICATE BANNER -->
+    <div class="cert-banner">
+      <div class="cert-icon">🎓</div>
+      <div class="cert-info">
+        <div class="cert-title">Certificado CreIA — Creador de Contenido con IA</div>
+        <div class="cert-sub">Completa todos los módulos para desbloquear tu certificado oficial. Te quedan 6 módulos.</div>
+      </div>
+      <button class="btn-cert">Ver mi progreso</button>
+    </div>
+
+  </main>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal" onclick="closeModalOutside(event)">
+  <div class="modal">
+    <div class="modal-video">
+      <div class="modal-play-btn">▶</div>
+      <div class="modal-placeholder">Video de lección · Próximamente</div>
+    </div>
+    <div class="modal-body">
+      <p class="modal-mod-num" id="modalNum">MÓDULO 01</p>
+      <h2 class="modal-title" id="modalTitle">Bienvenida y mentalidad IA</h2>
+      <p class="modal-desc" id="modalDesc">Configura tu entorno, conoce las herramientas clave y entiende cómo funciona la IA para creadores de contenido y dueños de negocio.</p>
+      <div class="modal-lessons" id="modalLessons"></div>
+      <div class="modal-actions">
+        <button class="btn-continue" id="modalBtn">▶ Iniciar módulo</button>
+        <button class="btn-complete" id="modalCompleteBtn" style="display:none;">✓ Marcar como completado</button>
+        <button class="btn-close" onclick="closeModal()">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─────────────────────────────────────────
+// 🔧 CONFIGURACIÓN SUPABASE
+// Reemplaza con los valores de tu proyecto en supabase.com
+// ─────────────────────────────────────────
+const SUPABASE_URL  = 'https://ktxggjyixtiseuxwfspc.supabase.co';
+const SUPABASE_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt0eGdnanlpeHRpc2V1eHdmc3BjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzMDY1MzgsImV4cCI6MjA4OTg4MjUzOH0._hwEw6V85azOk3_Uizca7o6cWfdUY8wsdi7MvBC4Moc';
+
+const { createClient } = supabase;
+const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+let currentUser = null;
+let userProgress = {}; // { module_index: { completed: bool, lessons_done: [0,1,...] } }
+
+// ─────────────────────────────────────────
+// 🔒 PROTECCIÓN DE RUTA — se ejecuta al cargar
+// Si no hay sesión → redirige al login
+// ─────────────────────────────────────────
+async function init() {
+  const { data: { session }, error } = await sb.auth.getSession();
+
+  if (!session) {
+    // Sin sesión → al login
+    window.location.href = 'creia-auth.html';
+    return;
+  }
+
+  currentUser = session.user;
+
+  // Mostrar nombre del usuario
+  const name = currentUser.user_metadata?.full_name || currentUser.email.split('@')[0];
+  const initial = name.charAt(0).toUpperCase();
+  document.getElementById('userName').textContent = name;
+  document.getElementById('userAvatar').textContent = initial;
+
+  // Cargar progreso desde Supabase
+  await loadProgress();
+
+  // Renderizar módulos con progreso real
+  renderModules();
+  renderContinueBanner();
+  updateProgressBar();
+
+  // Ocultar loading screen
+  setTimeout(() => {
+    document.getElementById('loadingScreen').classList.add('hidden');
+  }, 600);
+}
+
+// ─────────────────────────────────────────
+// 📊 CARGAR PROGRESO DESDE SUPABASE
+// Tabla: user_progress (user_id, module_index, lessons_done, completed_at)
+// ─────────────────────────────────────────
+async function loadProgress() {
+  try {
+    const { data, error } = await sb
+      .from('user_progress')
+      .select('*')
+      .eq('user_id', currentUser.id);
+
+    if (error) throw error;
+
+    userProgress = {};
+    (data || []).forEach(row => {
+      userProgress[row.module_index] = {
+        completed: row.completed,
+        lessons_done: row.lessons_done || []
+      };
+    });
+
+    // Módulo 0 siempre desbloqueado (bienvenida)
+    if (!userProgress[0]) {
+      userProgress[0] = { completed: false, lessons_done: [] };
+    }
+  } catch(e) {
+    console.warn('Error cargando progreso:', e.message);
+    // Fallback: solo módulo 0 desbloqueado
+    userProgress = { 0: { completed: false, lessons_done: [] } };
+  }
+}
+
+// ─────────────────────────────────────────
+// 🎯 LÓGICA DE DESBLOQUEO PROGRESIVO
+// Un módulo se desbloquea cuando el anterior está completado
+// ─────────────────────────────────────────
+function getModuleStatus(index) {
+  const prog = userProgress[index];
+  if (!prog && index === 0) return 'unlocked';  // módulo 0 siempre abierto
+  if (!prog) {
+    // Verificar si el anterior está completo
+    const prev = userProgress[index - 1];
+    return (prev && prev.completed) ? 'unlocked' : 'locked';
+  }
+  if (prog.completed) return 'done';
+  return 'current'; // existe progreso pero no completado
+}
+
+function isUnlocked(index) {
+  const s = getModuleStatus(index);
+  return s === 'done' || s === 'current' || s === 'unlocked';
+}
+
+// ─────────────────────────────────────────
+// ✅ MARCAR MÓDULO COMO COMPLETADO
+// ─────────────────────────────────────────
+async function completeModule(index) {
+  try {
+    const { error } = await sb
+      .from('user_progress')
+      .upsert({
+        user_id: currentUser.id,
+        module_index: index,
+        completed: true,
+        lessons_done: modules[index].lessons.map((_, i) => i),
+        completed_at: new Date().toISOString()
+      }, { onConflict: 'user_id,module_index' });
+
+    if (error) throw error;
+
+    userProgress[index] = {
+      completed: true,
+      lessons_done: modules[index].lessons.map((_, i) => i)
+    };
+
+    // Desbloquear el siguiente módulo
+    const next = index + 1;
+    if (next < modules.length && !userProgress[next]) {
+      userProgress[next] = { completed: false, lessons_done: [] };
+      await sb.from('user_progress').upsert({
+        user_id: currentUser.id,
+        module_index: next,
+        completed: false,
+        lessons_done: []
+      }, { onConflict: 'user_id,module_index' });
+    }
+
+    closeModal();
+    renderModules();
+    updateProgressBar();
+    renderContinueBanner();
+
+    const nextName = next < modules.length ? `Módulo ${next + 1}` : '¡Programa completo!';
+    showToast(`✓ Módulo completado · ${nextName} desbloqueado 🎉`, 'success');
+
+    // Si completó todo → mostrar certificado
+    if (next >= modules.length) {
+      setTimeout(() => showToast('🎓 ¡Felicidades! Tu certificado está listo.', 'success'), 2500);
+    }
+
+  } catch(e) {
+    showToast('Error al guardar progreso. Intenta de nuevo.', 'error');
+  }
+}
+
+// ─────────────────────────────────────────
+// 🎨 RENDERIZAR MÓDULOS CON ESTADO REAL
+// ─────────────────────────────────────────
+const moduleColors = [
+  '#1a1a1a,#222','#1a1a1a,#1f1c17','#1a1a1a,#1a1c1f',
+  '#1a1a1a,#1c1a1f','#1a1a1a,#1a1f1a','#1a1a1a,#1f1a1a',
+  '#1a1a1a,#1f1c1a','#1a1a1a,#1c1f1a'
+];
+
+function renderModules() {
+  const grid = document.getElementById('modulesGrid');
+  if (!grid) return;
+
+  grid.innerHTML = modules.map((m, i) => {
+    const status = getModuleStatus(i);
+    const prog = userProgress[i];
+    const lessonsTotal = m.lessons.length;
+    const lessonsDone = prog ? (prog.lessons_done || []).length : 0;
+    const pct = lessonsTotal > 0 ? Math.round((lessonsDone / lessonsTotal) * 100) : 0;
+    const colors = moduleColors[i] || '#1a1a1a,#222';
+
+    const statusBadge = status === 'done'
+      ? `<span class="mod-status done">✓ Listo</span>`
+      : status === 'current'
+      ? `<span class="mod-status current">En curso</span>`
+      : status === 'unlocked'
+      ? `<span class="mod-status current">Nuevo ✨</span>`
+      : `<span class="mod-status locked">🔒 Bloqueado</span>`;
+
+    return `
+      <div class="mod-card" onclick="openModule(${i})" style="${status === 'locked' ? 'opacity:0.5;cursor:not-allowed;' : ''}">
+        <div class="mod-thumb" style="background:linear-gradient(135deg,${colors});">
+          <div class="mod-thumb-bg"></div>
+          <span style="position:relative;z-index:1">${m.icon}</span>
+          ${statusBadge}
+          <div class="mod-progress-bar">
+            <div class="mod-progress-fill" style="width:${pct}%"></div>
+          </div>
+        </div>
+        <div class="mod-body">
+          <p class="mod-num">Módulo ${String(i+1).padStart(2,'0')}</p>
+          <h3 class="mod-title">${m.title}</h3>
+          <div class="mod-meta">
+            <span>${lessonsTotal} lecciones</span>
+            <span>${lessonsDone}/${lessonsTotal} vistas</span>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('') + `
+    <div class="mod-card" style="background:#111;display:flex;align-items:center;justify-content:center;text-align:center;padding:2rem;cursor:default;">
+      <div>
+        <p style="font-family:var(--serif);font-size:2rem;font-style:italic;color:rgba(248,246,241,0.15);margin-bottom:0.5rem;">+</p>
+        <p style="font-size:0.78rem;color:rgba(248,246,241,0.4);">Actualizaciones futuras incluidas en tu acceso de por vida</p>
+      </div>
+    </div>
+  `;
+}
+
+// ─────────────────────────────────────────
+// 📊 BARRA DE PROGRESO GENERAL
+// ─────────────────────────────────────────
+function updateProgressBar() {
+  const done = Object.values(userProgress).filter(p => p.completed).length;
+  const total = modules.length;
+  const pct = Math.round((done / total) * 100);
+
+  const fill = document.getElementById('progressFill');
+  const text = document.getElementById('progressText');
+  if (fill) fill.style.width = `${pct}%`;
+  if (text) text.innerHTML = `<span>${done} de ${total}</span> módulos completados`;
+}
+
+// ─────────────────────────────────────────
+// 🎬 BANNER DE CONTINUAR
+// ─────────────────────────────────────────
+function renderContinueBanner() {
+  // Encontrar el módulo actual (en curso o primer desbloqueado no completo)
+  let current = 0;
+  for (let i = 0; i < modules.length; i++) {
+    const s = getModuleStatus(i);
+    if (s === 'current' || s === 'unlocked') { current = i; break; }
+    if (s === 'done') current = Math.min(i + 1, modules.length - 1);
+  }
+  const m = modules[current];
+  const prog = userProgress[current];
+  const lessonsDone = prog ? (prog.lessons_done || []).length : 0;
+
+  const bannerTitle = document.getElementById('bannerTitle');
+  const bannerSub = document.getElementById('bannerSub');
+  const bannerBtn = document.getElementById('bannerBtn');
+
+  if (bannerTitle) bannerTitle.innerHTML = `Módulo ${current + 1} — <em>${m.title}</em>`;
+  if (bannerSub) bannerSub.textContent = `Lección ${lessonsDone + 1} de ${m.lessons.length} · ${m.lessons[lessonsDone]?.title || 'Continúa aprendiendo'}`;
+  if (bannerBtn) bannerBtn.setAttribute('onclick', `openModule(${current});return false;`);
+}
+
+// ─────────────────────────────────────────
+// 🪟 MODAL DE MÓDULO
+// ─────────────────────────────────────────
+function openModule(i) {
+  const status = getModuleStatus(i);
+  if (status === 'locked') {
+    showToast('🔒 Completa el módulo anterior para desbloquear este.', 'error');
+    return;
+  }
+
+  const m = modules[i];
+  const prog = userProgress[i] || { completed: false, lessons_done: [] };
+
+  document.getElementById('modalNum').textContent = m.num;
+  document.getElementById('modalTitle').textContent = m.title;
+  document.getElementById('modalDesc').textContent = m.desc;
+
+  const lessonsEl = document.getElementById('modalLessons');
+  lessonsEl.innerHTML = m.lessons.map((l, idx) => {
+    const done = prog.lessons_done?.includes(idx);
+    return `
+      <div class="lesson-item" onclick="markLesson(${i}, ${idx})">
+        <span class="lesson-num">${String(idx+1).padStart(2,'0')}</span>
+        <span class="lesson-title">${l.title}</span>
+        <span class="lesson-dur">${l.dur}</span>
+        <span class="lesson-check ${done ? 'done' : ''}">${done ? '✓' : ''}</span>
+      </div>
+    `;
+  }).join('');
+
+  const btn = document.getElementById('modalBtn');
+  const completeBtn = document.getElementById('modalCompleteBtn');
+
+  if (prog.completed) {
+    btn.textContent = '↺ Repasar módulo';
+    if (completeBtn) completeBtn.style.display = 'none';
+  } else {
+    btn.textContent = '▶ Iniciar lección';
+    if (completeBtn) {
+      completeBtn.style.display = 'inline-block';
+      completeBtn.onclick = () => completeModule(i);
+    }
+  }
+
+  document.getElementById('modal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+// ─────────────────────────────────────────
+// 📝 MARCAR LECCIÓN INDIVIDUAL
+// ─────────────────────────────────────────
+async function markLesson(modIdx, lessonIdx) {
+  const prog = userProgress[modIdx] || { completed: false, lessons_done: [] };
+  if (prog.lessons_done.includes(lessonIdx)) return; // ya marcada
+
+  prog.lessons_done = [...new Set([...prog.lessons_done, lessonIdx])];
+  userProgress[modIdx] = prog;
+
+  try {
+    await sb.from('user_progress').upsert({
+      user_id: currentUser.id,
+      module_index: modIdx,
+      completed: prog.completed,
+      lessons_done: prog.lessons_done
+    }, { onConflict: 'user_id,module_index' });
+  } catch(e) { console.warn('Error guardando lección'); }
+
+  // Actualizar check visual en modal
+  const checks = document.querySelectorAll('#modalLessons .lesson-check');
+  if (checks[lessonIdx]) {
+    checks[lessonIdx].classList.add('done');
+    checks[lessonIdx].textContent = '✓';
+  }
+}
+
+// ─────────────────────────────────────────
+// 🚪 CERRAR SESIÓN
+// ─────────────────────────────────────────
+async function handleLogout() {
+  await sb.auth.signOut();
+  window.location.href = 'creia-auth.html';
+}
+
+// ─────────────────────────────────────────
+// 🍞 TOAST NOTIFICATION
+// ─────────────────────────────────────────
+let toastTimer;
+function showToast(msg, type = 'success') {
+  const toast = document.getElementById('toast');
+  toast.textContent = msg;
+  toast.className = `show ${type}`;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toast.className = '', 3500);
+}
+
+// ─────────────────────────────────────────
+// MODAL HELPERS
+// ─────────────────────────────────────────
+function closeModal() {
+  document.getElementById('modal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+function closeModalOutside(e) {
+  if (e.target === document.getElementById('modal')) closeModal();
+}
+function setActive(el) {
+  document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
+  el.classList.add('active');
+}
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+}
+
+// ─────────────────────────────────────────
+// 📚 DATOS DE MÓDULOS
+// ─────────────────────────────────────────
+const modules = [
+  {
+    num: 'MÓDULO 01', icon: '🎯', title: 'Bienvenida y mentalidad IA',
+    desc: 'Configura tu entorno, conoce las herramientas clave y entiende cómo funciona la IA para creadores de contenido y dueños de negocio.',
+    lessons: [
+      { title: 'Bienvenida a CreIA', dur: '8 min' },
+      { title: 'Las herramientas que usarás', dur: '10 min' },
+      { title: 'Cómo sacarle máximo provecho', dur: '7 min' },
+      { title: 'Tu primer prompt', dur: '12 min' },
+      { title: 'Recursos de bienvenida', dur: '5 min' },
+    ]
+  },
+  {
+    num: 'MÓDULO 02', icon: '🖼️', title: 'Imágenes hiperrealistas y estilo Pixar',
+    desc: 'Crea fotos de producto, retratos y escenas increíbles con IA. Prompts listos para copiar y los mejores ajustes para cada estilo.',
+    lessons: [
+      { title: 'Introducción a la generación de imágenes', dur: '10 min' },
+      { title: 'Midjourney vs FLUX vs Leonardo', dur: '15 min' },
+      { title: 'Prompts para estilo Pixar', dur: '12 min' },
+      { title: 'Fotos de producto hiperrealistas', dur: '14 min' },
+      { title: 'Edición rápida con IA', dur: '8 min' },
+      { title: 'Proyecto: Tu primera imagen viral', dur: '9 min' },
+    ]
+  },
+  {
+    num: 'MÓDULO 03', icon: '🎬', title: 'Videos virales con IA',
+    desc: 'Anima tus productos, crea avatares digitales y genera videos sin salir en cámara usando Hedra, fal.ai y RunwayML.',
+    lessons: [
+      { title: 'Herramientas de video con IA', dur: '12 min' },
+      { title: 'Cómo crear tu avatar digital', dur: '18 min' },
+      { title: 'Videos de producto animados', dur: '15 min' },
+      { title: 'Lip sync y voces con IA', dur: '11 min' },
+      { title: 'Videos para Reels en minutos', dur: '13 min' },
+      { title: 'Proyecto: Tu primer video viral', dur: '16 min' },
+    ]
+  },
+  {
+    num: 'MÓDULO 04', icon: '✍️', title: 'Guiones, hooks y copys que venden',
+    desc: 'Estructura de contenido que engancha desde los primeros 3 segundos. Plantillas de guiones y hooks para cualquier plataforma.',
+    lessons: [
+      { title: 'La estructura del hook perfecto', dur: '10 min' },
+      { title: 'Tipos de hooks que funcionan hoy', dur: '12 min' },
+      { title: 'Guiones para Reels y TikTok', dur: '14 min' },
+      { title: 'Copys para publicaciones', dur: '11 min' },
+      { title: 'CTAs que convierten', dur: '9 min' },
+      { title: 'IA para escribir 10x más rápido', dur: '13 min' },
+      { title: 'Proyecto: Tu guión completo', dur: '15 min' },
+    ]
+  },
+  {
+    num: 'MÓDULO 05', icon: '✂️', title: 'CapCut paso a paso',
+    desc: 'Edición profesional de Reels y TikToks desde tu celular. Rápido, fácil y con resultados que parecen de estudio.',
+    lessons: [
+      { title: 'Interfaz y funciones clave de CapCut', dur: '10 min' },
+      { title: 'Edición de Reels en 10 minutos', dur: '14 min' },
+      { title: 'Subtítulos automáticos con IA', dur: '8 min' },
+      { title: 'Efectos y transiciones virales', dur: '12 min' },
+      { title: 'Proyecto: Reel completo editado', dur: '11 min' },
+    ]
+  },
+  {
+    num: 'MÓDULO 06', icon: '💬', title: 'ManyChat y automatizaciones',
+    desc: 'Palabras clave, mensajes automáticos y seguimiento para vender mientras duermes. Configura tu sistema desde cero.',
+    lessons: [
+      { title: 'Qué es ManyChat y cómo funciona', dur: '10 min' },
+      { title: 'Configurar tu primera palabra clave', dur: '12 min' },
+      { title: 'Flujos de mensajes automáticos', dur: '15 min' },
+      { title: 'Secuencias de seguimiento', dur: '13 min' },
+      { title: 'Conectar ManyChat a tu tienda', dur: '11 min' },
+      { title: 'Proyecto: Sistema completo configurado', dur: '16 min' },
+    ]
+  },
+  {
+    num: 'MÓDULO 07', icon: '📣', title: 'Publicidad con IA',
+    desc: 'Estructura de anuncios en Meta Ads usando IA para escribir, diseñar y lanzar campañas que conviertan.',
+    lessons: [
+      { title: 'Anatomía de un anuncio que vende', dur: '12 min' },
+      { title: 'Cómo usar IA para escribir anuncios', dur: '14 min' },
+      { title: 'Creativos con IA para Meta Ads', dur: '16 min' },
+      { title: 'Segmentación inteligente', dur: '13 min' },
+      { title: 'Analizar y optimizar resultados', dur: '11 min' },
+      { title: 'Proyecto: Tu primer anuncio activo', dur: '18 min' },
+    ]
+  },
+  {
+    num: 'MÓDULO 08', icon: '💡', title: 'Ideas infinitas de contenido',
+    desc: 'Sistema para generar contenido para cualquier tipo de negocio. Nunca más te quedas sin ideas con este sistema de IA.',
+    lessons: [
+      { title: 'El sistema de los 3 pilares', dur: '10 min' },
+      { title: 'IA para generar ideas en batch', dur: '12 min' },
+      { title: 'Calendarios de contenido con IA', dur: '14 min' },
+      { title: 'Adaptar ideas a tu nicho', dur: '11 min' },
+      { title: 'Reciclar contenido inteligentemente', dur: '9 min' },
+      { title: 'Herramientas de tendencias con IA', dur: '13 min' },
+      { title: 'Proyecto: Tu calendario de 30 días', dur: '15 min' },
+    ]
+  },
+];
+
+// ─────────────────────────────────────────
+// 🚀 ARRANCAR
+// ─────────────────────────────────────────
+init();
+</script>
+</body>
+</html>

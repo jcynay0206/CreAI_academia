@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CreIA — Acceso</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<!-- ✅ SUPABASE SDK — reemplaza la URL y KEY con las tuyas -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --black: #0a0a0a;
+    --surface: #111111;
+    --surface2: #1a1a1a;
+    --border: rgba(255,255,255,0.08);
+    --white: #f8f6f1;
+    --gray: #888880;
+    --accent: #c8b89a;
+    --accent2: #e8d5b0;
+    --red: #f87171;
+    --green: #4ade80;
+    --serif: 'Playfair Display', Georgia, serif;
+    --sans: 'DM Sans', sans-serif;
+    --mono: 'DM Mono', monospace;
+  }
+
+  body {
+    background: var(--black);
+    color: var(--white);
+    font-family: var(--sans);
+    font-weight: 300;
+    min-height: 100vh;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  /* ── LEFT PANEL ── */
+  .left {
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    padding: 3rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .left::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+    background-size: 32px 32px;
+    pointer-events: none;
+  }
+
+  .left-logo {
+    font-family: var(--serif);
+    font-size: 1.8rem;
+    font-weight: 900;
+    font-style: italic;
+    color: var(--white);
+    text-decoration: none;
+    position: relative;
+    z-index: 1;
+  }
+
+  .left-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    position: relative;
+    z-index: 1;
+  }
+
+  .left-tag {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 1.2rem;
+  }
+
+  .left-title {
+    font-family: var(--serif);
+    font-size: clamp(2.5rem, 4vw, 4rem);
+    font-weight: 900;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    margin-bottom: 1.5rem;
+  }
+  .left-title em { font-style: italic; color: var(--accent); }
+
+  .left-features {
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+    margin-bottom: 3rem;
+  }
+
+  .feat {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    font-size: 0.85rem;
+    color: rgba(248,246,241,0.7);
+  }
+
+  .feat-dot {
+    width: 6px; height: 6px;
+    background: var(--accent);
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .left-quote {
+    border-left: 2px solid var(--accent);
+    padding: 1rem 1.2rem;
+    background: rgba(200,184,154,0.05);
+    border-radius: 0 4px 4px 0;
+  }
+
+  .left-quote p {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: rgba(248,246,241,0.75);
+    margin-bottom: 0.4rem;
+  }
+
+  .left-quote span {
+    font-family: var(--mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.1em;
+    color: var(--gray);
+    text-transform: uppercase;
+  }
+
+  /* ── RIGHT PANEL ── */
+  .right {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem 2rem;
+  }
+
+  .auth-box {
+    width: 100%;
+    max-width: 400px;
+  }
+
+  /* TABS */
+  .tabs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 4px;
+    margin-bottom: 2rem;
+  }
+
+  .tab {
+    padding: 0.65rem;
+    text-align: center;
+    font-size: 0.82rem;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+    color: var(--gray);
+    user-select: none;
+  }
+  .tab.active {
+    background: var(--surface);
+    color: var(--white);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+  }
+
+  /* FORM */
+  .form-section { display: none; }
+  .form-section.active { display: block; }
+
+  .form-title {
+    font-family: var(--serif);
+    font-size: 1.6rem;
+    font-weight: 700;
+    margin-bottom: 0.4rem;
+  }
+  .form-title em { font-style: italic; color: var(--accent); }
+
+  .form-sub {
+    font-size: 0.82rem;
+    color: var(--gray);
+    margin-bottom: 1.8rem;
+    line-height: 1.5;
+  }
+
+  .field {
+    margin-bottom: 1.1rem;
+  }
+
+  .field label {
+    display: block;
+    font-family: var(--mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--gray);
+    margin-bottom: 0.45rem;
+  }
+
+  .field input {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 0.75rem 1rem;
+    color: var(--white);
+    font-family: var(--sans);
+    font-size: 0.88rem;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .field input:focus { border-color: var(--accent); }
+  .field input::placeholder { color: var(--gray); }
+  .field input.error { border-color: var(--red); }
+
+  .field-error {
+    font-size: 0.72rem;
+    color: var(--red);
+    margin-top: 0.3rem;
+    display: none;
+  }
+  .field-error.show { display: block; }
+
+  .password-wrap {
+    position: relative;
+  }
+  .password-wrap input { padding-right: 2.8rem; }
+  .toggle-pwd {
+    position: absolute;
+    right: 0.9rem; top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: var(--gray);
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: color 0.2s;
+  }
+  .toggle-pwd:hover { color: var(--white); }
+
+  .btn-submit {
+    width: 100%;
+    background: var(--accent);
+    color: var(--black);
+    border: none;
+    border-radius: 4px;
+    padding: 0.9rem;
+    font-family: var(--sans);
+    font-size: 0.85rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.15s;
+    margin-top: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+  }
+  .btn-submit:hover { background: var(--accent2); transform: translateY(-1px); }
+  .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+  .spinner {
+    width: 16px; height: 16px;
+    border: 2px solid rgba(0,0,0,0.2);
+    border-top-color: var(--black);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    display: none;
+  }
+  .spinner.show { display: block; }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .forgot {
+    text-align: right;
+    margin-top: -0.6rem;
+    margin-bottom: 1rem;
+  }
+  .forgot a {
+    font-size: 0.75rem;
+    color: var(--gray);
+    text-decoration: none;
+    transition: color 0.2s;
+    cursor: pointer;
+  }
+  .forgot a:hover { color: var(--accent); }
+
+  /* ALERT */
+  .alert {
+    display: none;
+    padding: 0.8rem 1rem;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    line-height: 1.5;
+    margin-bottom: 1rem;
+  }
+  .alert.show { display: block; }
+  .alert.success { background: rgba(74,222,128,0.1); border: 1px solid rgba(74,222,128,0.2); color: var(--green); }
+  .alert.error { background: rgba(248,113,113,0.1); border: 1px solid rgba(248,113,113,0.2); color: var(--red); }
+
+  .divider {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    margin: 1.2rem 0;
+  }
+  .divider::before, .divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+  .divider span {
+    font-family: var(--mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.1em;
+    color: var(--gray);
+    text-transform: uppercase;
+  }
+
+  .terms {
+    font-size: 0.72rem;
+    color: var(--gray);
+    text-align: center;
+    margin-top: 1.2rem;
+    line-height: 1.6;
+  }
+  .terms a { color: var(--accent); text-decoration: none; }
+
+  /* SUCCESS STATE */
+  .success-state {
+    display: none;
+    text-align: center;
+    padding: 2rem 0;
+  }
+  .success-state.show { display: block; }
+
+  .success-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    display: block;
+    animation: bounceIn 0.5s ease;
+  }
+
+  @keyframes bounceIn {
+    0% { transform: scale(0); opacity: 0; }
+    60% { transform: scale(1.2); }
+    100% { transform: scale(1); opacity: 1; }
+  }
+
+  .success-title {
+    font-family: var(--serif);
+    font-size: 1.4rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+  }
+  .success-sub {
+    font-size: 0.82rem;
+    color: var(--gray);
+    line-height: 1.6;
+    margin-bottom: 1.5rem;
+  }
+
+  /* RESET PASSWORD STATE */
+  .reset-state {
+    display: none;
+  }
+  .reset-state.show { display: block; }
+
+  /* RESPONSIVE */
+  @media (max-width: 768px) {
+    body { grid-template-columns: 1fr; }
+    .left { display: none; }
+    .right { padding: 2rem 1.5rem; align-items: flex-start; padding-top: 4rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- LEFT PANEL -->
+<div class="left">
+  <a href="index.html" class="left-logo">CreIA</a>
+  <div class="left-content">
+    <p class="left-tag">Academia de Contenido con IA</p>
+    <h1 class="left-title">Tu contenido.<br><em>Tu negocio.</em><br>Con IA.</h1>
+    <div class="left-features">
+      <div class="feat"><div class="feat-dot"></div>8 módulos completos con video</div>
+      <div class="feat"><div class="feat-dot"></div>Prompts listos para copiar y pegar</div>
+      <div class="feat"><div class="feat-dot"></div>Comunidad privada + soporte 24/7</div>
+      <div class="feat"><div class="feat-dot"></div>Acceso de por vida + actualizaciones</div>
+      <div class="feat"><div class="feat-dot"></div>100% desde tu celular</div>
+    </div>
+    <div class="left-quote">
+      <p>"La IA no reemplaza tu creatividad. La amplifica."</p>
+      <span>CreIA · Academia</span>
+    </div>
+  </div>
+</div>
+
+<!-- RIGHT PANEL -->
+<div class="right">
+  <div class="auth-box">
+
+    <!-- TABS -->
+    <div class="tabs">
+      <div class="tab active" onclick="switchTab('login')">Iniciar sesión</div>
+      <div class="tab" onclick="switchTab('signup')">Crear cuenta</div>
+    </div>
+
+    <!-- ALERT GLOBAL -->
+    <div class="alert" id="globalAlert"></div>
+
+    <!-- LOGIN -->
+    <div class="form-section active" id="loginSection">
+      <h2 class="form-title">Bienvenida <em>de vuelta</em></h2>
+      <p class="form-sub">Accede a tu academia y continúa donde lo dejaste.</p>
+
+      <div class="field">
+        <label>Correo electrónico</label>
+        <input type="email" id="loginEmail" placeholder="tucorreo@ejemplo.com">
+        <div class="field-error" id="loginEmailErr">Ingresa un correo válido</div>
+      </div>
+
+      <div class="field">
+        <label>Contraseña</label>
+        <div class="password-wrap">
+          <input type="password" id="loginPassword" placeholder="••••••••">
+          <button class="toggle-pwd" onclick="togglePwd('loginPassword', this)">👁</button>
+        </div>
+        <div class="field-error" id="loginPwdErr">La contraseña es requerida</div>
+      </div>
+
+      <div class="forgot"><a onclick="switchTab('reset')">¿Olvidaste tu contraseña?</a></div>
+
+      <button class="btn-submit" id="loginBtn" onclick="handleLogin()">
+        <div class="spinner" id="loginSpinner"></div>
+        <span id="loginBtnText">Entrar a mi academia</span>
+      </button>
+
+      <div class="divider"><span>¿No tienes cuenta?</span></div>
+      <button class="btn-submit" style="background:var(--surface2);color:var(--white);border:1px solid var(--border);" onclick="switchTab('signup')">
+        Crear cuenta gratis
+      </button>
+    </div>
+
+    <!-- SIGNUP -->
+    <div class="form-section" id="signupSection">
+      <h2 class="form-title">Empieza a <em>crear</em></h2>
+      <p class="form-sub">Crea tu cuenta y accede a todo el contenido de CreIA.</p>
+
+      <div class="field">
+        <label>Nombre completo</label>
+        <input type="text" id="signupName" placeholder="Tu nombre">
+        <div class="field-error" id="signupNameErr">Ingresa tu nombre</div>
+      </div>
+
+      <div class="field">
+        <label>Correo electrónico</label>
+        <input type="email" id="signupEmail" placeholder="tucorreo@ejemplo.com">
+        <div class="field-error" id="signupEmailErr">Ingresa un correo válido</div>
+      </div>
+
+      <div class="field">
+        <label>Contraseña</label>
+        <div class="password-wrap">
+          <input type="password" id="signupPassword" placeholder="Mínimo 8 caracteres">
+          <button class="toggle-pwd" onclick="togglePwd('signupPassword', this)">👁</button>
+        </div>
+        <div class="field-error" id="signupPwdErr">Mínimo 8 caracteres</div>
+      </div>
+
+      <div class="field">
+        <label>Confirmar contraseña</label>
+        <div class="password-wrap">
+          <input type="password" id="signupPassword2" placeholder="Repite tu contraseña">
+          <button class="toggle-pwd" onclick="togglePwd('signupPassword2', this)">👁</button>
+        </div>
+        <div class="field-error" id="signupPwd2Err">Las contraseñas no coinciden</div>
+      </div>
+
+      <!-- Código de acceso (si usas códigos de pago) -->
+      <div class="field">
+        <label>Código de acceso <span style="color:var(--gray);font-size:0.9em;">(opcional)</span></label>
+        <input type="text" id="signupCode" placeholder="Código de tu compra">
+      </div>
+
+      <button class="btn-submit" id="signupBtn" onclick="handleSignup()">
+        <div class="spinner" id="signupSpinner"></div>
+        <span id="signupBtnText">Crear mi cuenta</span>
+      </button>
+
+      <p class="terms">Al registrarte aceptas los <a href="#">Términos de uso</a> y la <a href="#">Política de privacidad</a></p>
+    </div>
+
+    <!-- RESET PASSWORD -->
+    <div class="form-section" id="resetSection">
+      <h2 class="form-title">Recuperar <em>acceso</em></h2>
+      <p class="form-sub">Te enviamos un enlace para restablecer tu contraseña.</p>
+
+      <div class="field">
+        <label>Correo electrónico</label>
+        <input type="email" id="resetEmail" placeholder="tucorreo@ejemplo.com">
+        <div class="field-error" id="resetEmailErr">Ingresa un correo válido</div>
+      </div>
+
+      <button class="btn-submit" id="resetBtn" onclick="handleReset()">
+        <div class="spinner" id="resetSpinner"></div>
+        <span id="resetBtnText">Enviar enlace</span>
+      </button>
+
+      <div class="divider"><span>o</span></div>
+      <button class="btn-submit" style="background:var(--surface2);color:var(--white);border:1px solid var(--border);" onclick="switchTab('login')">
+        Volver al inicio de sesión
+      </button>
+    </div>
+
+    <!-- SUCCESS SIGNUP -->
+    <div class="success-state" id="successState">
+      <span class="success-icon">🎉</span>
+      <h2 class="success-title">¡Bienvenida a CreIA!</h2>
+      <p class="success-sub">Revisa tu correo para confirmar tu cuenta y luego regresa aquí para entrar a tu academia.</p>
+      <button class="btn-submit" onclick="switchTab('login')">Ir al inicio de sesión</button>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ─────────────────────────────────────────
+// 🔧 CONFIGURACIÓN SUPABASE
+// Reemplaza estos valores con los de tu proyecto en supabase.com
+// ─────────────────────────────────────────
+const SUPABASE_URL = 'https://ktxggjyixtiseuxwfspc.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt0eGdnanlpeHRpc2V1eHdmc3BjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzMDY1MzgsImV4cCI6MjA4OTg4MjUzOH0._hwEw6V85azOk3_Uizca7o6cWfdUY8wsdi7MvBC4Moc';
+
+const { createClient } = supabase;
+const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// ─────────────────────────────────────────
+// Verificar si ya hay sesión activa → redirigir
+// ─────────────────────────────────────────
+(async () => {
+  const { data: { session } } = await sb.auth.getSession();
+  if (session) window.location.href = 'miembros.html';
+})();
+
+// ─────────────────────────────────────────
+// TABS
+// ─────────────────────────────────────────
+function switchTab(tab) {
+  document.querySelectorAll('.form-section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('successState').classList.remove('show');
+  clearAlert();
+
+  if (tab === 'login') {
+    document.getElementById('loginSection').classList.add('active');
+    document.querySelectorAll('.tab')[0].classList.add('active');
+  } else if (tab === 'signup') {
+    document.getElementById('signupSection').classList.add('active');
+    document.querySelectorAll('.tab')[1].classList.add('active');
+  } else if (tab === 'reset') {
+    document.getElementById('resetSection').classList.add('active');
+  }
+}
+
+// ─────────────────────────────────────────
+// UTILS
+// ─────────────────────────────────────────
+function showAlert(msg, type = 'error') {
+  const el = document.getElementById('globalAlert');
+  el.textContent = msg;
+  el.className = `alert show ${type}`;
+}
+function clearAlert() {
+  document.getElementById('globalAlert').className = 'alert';
+}
+
+function setLoading(btnId, spinnerId, textId, loading, text = '') {
+  const btn = document.getElementById(btnId);
+  const spinner = document.getElementById(spinnerId);
+  const label = document.getElementById(textId);
+  btn.disabled = loading;
+  spinner.classList.toggle('show', loading);
+  if (text) label.textContent = loading ? 'Procesando...' : text;
+}
+
+function validateEmail(e) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e); }
+
+function togglePwd(inputId, btn) {
+  const input = document.getElementById(inputId);
+  if (input.type === 'password') { input.type = 'text'; btn.textContent = '🙈'; }
+  else { input.type = 'password'; btn.textContent = '👁'; }
+}
+
+function fieldError(id, show) {
+  document.getElementById(id).classList.toggle('show', show);
+}
+
+// ─────────────────────────────────────────
+// LOGIN
+// ─────────────────────────────────────────
+async function handleLogin() {
+  clearAlert();
+  const email = document.getElementById('loginEmail').value.trim();
+  const password = document.getElementById('loginPassword').value;
+
+  let valid = true;
+  fieldError('loginEmailErr', !validateEmail(email));
+  fieldError('loginPwdErr', !password);
+  if (!validateEmail(email) || !password) return;
+
+  setLoading('loginBtn', 'loginSpinner', 'loginBtnText', true, 'Entrar a mi academia');
+
+  try {
+    const { data, error } = await sb.auth.signInWithPassword({ email, password });
+
+    if (error) {
+      const msg = error.message.includes('Invalid') 
+        ? 'Correo o contraseña incorrectos. Verifica tus datos.' 
+        : error.message;
+      showAlert(msg, 'error');
+    } else {
+      showAlert('✓ Sesión iniciada. Redirigiendo...', 'success');
+      setTimeout(() => window.location.href = 'miembros.html', 1000);
+    }
+  } catch(e) {
+    showAlert('Error de conexión. Intenta de nuevo.', 'error');
+  }
+
+  setLoading('loginBtn', 'loginSpinner', 'loginBtnText', false, 'Entrar a mi academia');
+}
+
+// ─────────────────────────────────────────
+// SIGNUP
+// ─────────────────────────────────────────
+async function handleSignup() {
+  clearAlert();
+  const name = document.getElementById('signupName').value.trim();
+  const email = document.getElementById('signupEmail').value.trim();
+  const pwd = document.getElementById('signupPassword').value;
+  const pwd2 = document.getElementById('signupPassword2').value;
+  const code = document.getElementById('signupCode').value.trim();
+
+  fieldError('signupNameErr', !name);
+  fieldError('signupEmailErr', !validateEmail(email));
+  fieldError('signupPwdErr', pwd.length < 8);
+  fieldError('signupPwd2Err', pwd !== pwd2);
+
+  if (!name || !validateEmail(email) || pwd.length < 8 || pwd !== pwd2) return;
+
+  // Verificar código de acceso si aplica
+  const VALID_CODES = ['CREIA2026', 'FUNDADOR47']; // ← agrega tus códigos aquí
+  if (code && !VALID_CODES.includes(code.toUpperCase())) {
+    showAlert('Código de acceso inválido. Verifica tu compra.', 'error');
+    return;
+  }
+
+  setLoading('signupBtn', 'signupSpinner', 'signupBtnText', true, 'Crear mi cuenta');
+
+  try {
+    const { data, error } = await sb.auth.signUp({
+      email,
+      password: pwd,
+      options: {
+        data: { 
+          full_name: name,
+          access_code: code || 'direct',
+          plan: 'completo'
+        }
+      }
+    });
+
+    if (error) {
+      const msg = error.message.includes('already registered')
+        ? 'Este correo ya tiene una cuenta. Inicia sesión.'
+        : error.message;
+      showAlert(msg, 'error');
+    } else {
+      document.querySelectorAll('.form-section').forEach(s => s.classList.remove('active'));
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.getElementById('successState').classList.add('show');
+    }
+  } catch(e) {
+    showAlert('Error de conexión. Intenta de nuevo.', 'error');
+  }
+
+  setLoading('signupBtn', 'signupSpinner', 'signupBtnText', false, 'Crear mi cuenta');
+}
+
+// ─────────────────────────────────────────
+// RESET PASSWORD
+// ─────────────────────────────────────────
+async function handleReset() {
+  clearAlert();
+  const email = document.getElementById('resetEmail').value.trim();
+  fieldError('resetEmailErr', !validateEmail(email));
+  if (!validateEmail(email)) return;
+
+  setLoading('resetBtn', 'resetSpinner', 'resetBtnText', true, 'Enviar enlace');
+
+  try {
+    const { error } = await sb.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-confirm.html`
+    });
+
+    if (error) {
+      showAlert(error.message, 'error');
+    } else {
+      showAlert('✓ Enlace enviado. Revisa tu correo (incluyendo spam).', 'success');
+    }
+  } catch(e) {
+    showAlert('Error de conexión. Intenta de nuevo.', 'error');
+  }
+
+  setLoading('resetBtn', 'resetSpinner', 'resetBtnText', false, 'Enviar enlace');
+}
+
+// Enter key support
+document.addEventListener('keydown', (e) => {
+  if (e.key !== 'Enter') return;
+  const active = document.querySelector('.form-section.active');
+  if (!active) return;
+  if (active.id === 'loginSection') handleLogin();
+  else if (active.id === 'signupSection') handleSignup();
+  else if (active.id === 'resetSection') handleReset();
+});
+</script>
+</body>
+</html>
