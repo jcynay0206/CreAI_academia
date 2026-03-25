@@ -566,7 +566,7 @@ const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 // ─────────────────────────────────────────
 (async () => {
   const { data: { session } } = await sb.auth.getSession();
-  if (session) window.location.href = 'miembros.html';
+  if (session) window.location.href = 'creia-miembros.html';
 })();
 
 // ─────────────────────────────────────────
@@ -647,7 +647,7 @@ async function handleLogin() {
       showAlert(msg, 'error');
     } else {
       showAlert('✓ Sesión iniciada. Redirigiendo...', 'success');
-      setTimeout(() => window.location.href = 'miembros.html', 1000);
+      setTimeout(() => window.location.href = 'creia-miembros.html', 1000);
     }
   } catch(e) {
     showAlert('Error de conexión. Intenta de nuevo.', 'error');
