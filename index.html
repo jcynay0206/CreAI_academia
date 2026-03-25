@@ -33,7 +33,7 @@
 
   /* ── NAV ── */
   nav {
-    position: fixed; top: 0; left: 0; right: 0;
+    position: fixed; top: 52px; left: 0; right: 0;
     z-index: 100;
     display: flex; align-items: center; justify-content: space-between;
     padding: 1.2rem 4rem;
@@ -78,7 +78,7 @@
     min-height: 100vh;
     display: grid;
     grid-template-columns: 1fr 1fr;
-    padding-top: 5rem;
+    padding-top: 8rem;
     overflow: hidden;
   }
 
@@ -682,7 +682,341 @@
     color: rgba(248,246,241,0.3);
   }
 
-  /* ── ANIMATIONS ── */
+  /* ── COUNTDOWN ── */
+  .countdown-bar {
+    background: var(--black);
+    color: var(--white);
+    padding: 0.8rem 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1.5rem;
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 200;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+
+  .cd-label {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+
+  .cd-timer {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+  }
+
+  .cd-block {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .cd-num {
+    font-family: var(--serif);
+    font-size: 1.2rem;
+    font-weight: 700;
+    line-height: 1;
+    min-width: 32px;
+    text-align: center;
+  }
+
+  .cd-unit {
+    font-family: var(--mono);
+    font-size: 0.5rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+
+  .cd-sep {
+    font-size: 1rem;
+    color: rgba(255,255,255,0.3);
+    margin-bottom: 0.8rem;
+  }
+
+  .cd-price {
+    font-size: 0.8rem;
+    color: rgba(255,255,255,0.6);
+  }
+  .cd-price strong { color: var(--white); }
+
+  /* ── PRESENTER ── */
+  .presenter {
+    padding: 7rem 4rem;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6rem;
+    align-items: center;
+    border-top: 1px solid var(--gray-light);
+  }
+
+  .presenter-img {
+    position: relative;
+  }
+
+  .presenter-placeholder {
+    width: 100%;
+    aspect-ratio: 3/4;
+    background: var(--black);
+    border-radius: 4px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    border: 1px solid var(--gray-light);
+  }
+
+  .presenter-placeholder span {
+    font-size: 4rem;
+  }
+
+  .presenter-placeholder p {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--gray-mid);
+    text-align: center;
+    padding: 0 2rem;
+  }
+
+  .presenter-badge {
+    position: absolute;
+    bottom: -1rem; right: -1rem;
+    background: var(--black);
+    color: var(--white);
+    padding: 1rem 1.4rem;
+    border-radius: 4px;
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+
+  .presenter-badge-num {
+    font-family: var(--serif);
+    font-size: 1.8rem;
+    font-weight: 700;
+    display: block;
+  }
+
+  .presenter-badge-label {
+    font-family: var(--mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+
+  .presenter-content h2 {
+    font-family: var(--serif);
+    font-size: clamp(2rem, 3.5vw, 3.2rem);
+    font-weight: 900;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    margin-bottom: 1.2rem;
+  }
+  .presenter-content h2 em { font-style: italic; }
+
+  .presenter-content p {
+    font-size: 0.95rem;
+    line-height: 1.8;
+    color: var(--gray-dark);
+    margin-bottom: 1rem;
+  }
+
+  .presenter-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-top: 2rem;
+  }
+
+  .p-stat {
+    border: 1px solid var(--gray-light);
+    padding: 1rem;
+    border-radius: 4px;
+  }
+
+  .p-stat-num {
+    font-family: var(--serif);
+    font-size: 1.6rem;
+    font-weight: 700;
+    display: block;
+    margin-bottom: 0.2rem;
+  }
+
+  .p-stat-label {
+    font-family: var(--mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--gray-mid);
+  }
+
+  /* ── RESULTS ── */
+  .results {
+    padding: 7rem 4rem;
+    background: var(--black);
+    color: var(--white);
+    text-align: center;
+  }
+
+  .results h2 {
+    font-family: var(--serif);
+    font-size: clamp(2.2rem, 4vw, 3.8rem);
+    font-weight: 900;
+    line-height: 1.1;
+    margin-bottom: 0.8rem;
+  }
+  .results h2 em { font-style: italic; color: var(--accent); }
+
+  .results-sub {
+    font-size: 1rem;
+    color: rgba(248,246,241,0.5);
+    margin-bottom: 3.5rem;
+  }
+
+  .results-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: rgba(248,246,241,0.06);
+    max-width: 900px;
+    margin: 0 auto 4rem;
+  }
+
+  .result-card {
+    background: var(--black);
+    padding: 2.5rem 2rem;
+    text-align: center;
+  }
+
+  .result-num {
+    font-family: var(--serif);
+    font-size: 3rem;
+    font-weight: 900;
+    letter-spacing: -0.03em;
+    color: var(--white);
+    display: block;
+    margin-bottom: 0.3rem;
+  }
+
+  .result-label {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--accent);
+    display: block;
+    margin-bottom: 0.5rem;
+  }
+
+  .result-desc {
+    font-size: 0.8rem;
+    color: rgba(248,246,241,0.4);
+    line-height: 1.5;
+  }
+
+  /* ── TESTIMONIALS ── */
+  .testimonials {
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  .testi-label {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gray-mid);
+    margin-bottom: 2rem;
+    text-align: center;
+  }
+
+  .testi-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 1rem;
+  }
+
+  .testi-card {
+    background: rgba(248,246,241,0.04);
+    border: 1px solid rgba(248,246,241,0.08);
+    border-radius: 4px;
+    padding: 1.4rem;
+  }
+
+  .testi-stars {
+    color: var(--accent);
+    font-size: 0.8rem;
+    margin-bottom: 0.7rem;
+    letter-spacing: 0.1em;
+  }
+
+  .testi-text {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 0.88rem;
+    line-height: 1.6;
+    color: rgba(248,246,241,0.75);
+    margin-bottom: 1rem;
+  }
+
+  .testi-author {
+    font-family: var(--mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--gray-mid);
+  }
+
+  /* ── FINAL CTA ── */
+  .final-cta {
+    padding: 7rem 4rem;
+    text-align: center;
+    background: var(--white);
+    border-top: 1px solid var(--gray-light);
+  }
+
+  .final-cta h2 {
+    font-family: var(--serif);
+    font-size: clamp(2.5rem, 5vw, 5rem);
+    font-weight: 900;
+    line-height: 1.05;
+    letter-spacing: -0.03em;
+    margin-bottom: 1rem;
+  }
+  .final-cta h2 em { font-style: italic; }
+
+  .final-cta p {
+    font-size: 1rem;
+    color: var(--gray-dark);
+    margin-bottom: 2.5rem;
+    max-width: 500px;
+    margin-left: auto;
+    margin-right: auto;
+    line-height: 1.7;
+  }
+
+  .final-cta-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .final-price {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--gray-mid);
+  }
   @keyframes fadeUp {
     from { opacity: 0; transform: translateY(20px); }
     to   { opacity: 1; transform: translateY(0); }
@@ -709,24 +1043,46 @@
 
   /* ── RESPONSIVE ── */
   @media (max-width: 900px) {
-    nav { padding: 1rem 1.5rem; }
+    nav { padding: 1rem 1.5rem; top: 52px; }
     .hero { grid-template-columns: 1fr; }
     .hero-right { min-height: 50vh; }
     .pain { grid-template-columns: 1fr; padding: 4rem 1.5rem; gap: 2rem; }
     .pain-items { grid-template-columns: 1fr; }
     .for-who { grid-template-columns: 1fr; padding: 5rem 1.5rem; gap: 3rem; }
+    .presenter { grid-template-columns: 1fr; padding: 5rem 1.5rem; gap: 3rem; }
+    .presenter-stats { grid-template-columns: 1fr 1fr; }
+    .results { padding: 5rem 1.5rem; }
+    .results-grid { grid-template-columns: 1fr; }
+    .testi-grid { grid-template-columns: 1fr; }
     .curriculum { padding: 5rem 1.5rem; }
     .curriculum-header { grid-template-columns: 1fr; gap: 1.5rem; }
     .modules-grid { grid-template-columns: 1fr; }
     .pricing { grid-template-columns: 1fr; padding: 5rem 1.5rem; gap: 3rem; }
+    .final-cta { padding: 5rem 1.5rem; }
     .hero-left { padding: 5rem 1.5rem 3rem; }
     footer { flex-direction: column; gap: 1rem; text-align: center; padding: 2rem; }
     .faq { padding: 4rem 1.5rem; }
-    .social { padding: 4rem 1.5rem; }
+    .countdown-bar { gap: 0.8rem; padding: 0.8rem 1rem; flex-wrap: wrap; justify-content: center; }
+    .cd-price { display: none; }
   }
 </style>
 </head>
 <body>
+
+<!-- COUNTDOWN BAR -->
+<div class="countdown-bar">
+  <span class="cd-label">🔥 Oferta de lanzamiento termina en:</span>
+  <div class="cd-timer">
+    <div class="cd-block"><span class="cd-num" id="cd-d">07</span><span class="cd-unit">días</span></div>
+    <span class="cd-sep">:</span>
+    <div class="cd-block"><span class="cd-num" id="cd-h">23</span><span class="cd-unit">hrs</span></div>
+    <span class="cd-sep">:</span>
+    <div class="cd-block"><span class="cd-num" id="cd-m">59</span><span class="cd-unit">min</span></div>
+    <span class="cd-sep">:</span>
+    <div class="cd-block"><span class="cd-num" id="cd-s">59</span><span class="cd-unit">seg</span></div>
+  </div>
+  <span class="cd-price">Solo <strong>$47</strong> pago único</span>
+</div>
 
 <!-- NAV -->
 <nav>
@@ -747,7 +1103,7 @@
       Aprende a usar inteligencia artificial para crear contenido profesional desde tu celular — para tu marca personal o tu negocio.
     </p>
     <div class="hero-cta-group">
-      <a href="#pricing" class="btn-primary">Quiero acceso</a>
+      <a href="creia-auth.html" class="btn-primary">Quiero acceso</a>
       <a href="#curriculum" class="btn-ghost">Ver el programa</a>
     </div>
     <div class="hero-social-proof">
@@ -821,6 +1177,89 @@
       <div class="aud-text">
         <h4>Emprendedores digitales</h4>
         <p>Que quieren lanzar su marca, vender servicios o productos usando IA como ventaja competitiva.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRESENTER -->
+<section class="presenter reveal">
+  <div class="presenter-img">
+    <div class="presenter-placeholder">
+      <span>📸</span>
+      <p>Aquí va tu foto o video de presentación</p>
+    </div>
+    <div class="presenter-badge">
+      <span class="presenter-badge-num">+2 años</span>
+      <span class="presenter-badge-label">creando con IA</span>
+    </div>
+  </div>
+  <div class="presenter-content">
+    <p class="section-label">Tu instructora</p>
+    <h2>Hola, soy <em>Juny</em> —<br>y conozco tu frustración.</h2>
+    <p>Durante años vi cómo otros creadores explotaban en redes mientras yo seguía sin entender qué hacían diferente. La respuesta fue la inteligencia artificial.</p>
+    <p>Hoy uso IA para crear contenido profesional desde mi celular, sin equipo, sin estudios de grabación y sin invertir horas infinitas. Y eso es exactamente lo que te voy a enseñar en CreIA.</p>
+    <div class="presenter-stats">
+      <div class="p-stat">
+        <span class="p-stat-num">8</span>
+        <span class="p-stat-label">Módulos completos</span>
+      </div>
+      <div class="p-stat">
+        <span class="p-stat-num">48+</span>
+        <span class="p-stat-label">Lecciones en video</span>
+      </div>
+      <div class="p-stat">
+        <span class="p-stat-num">100%</span>
+        <span class="p-stat-label">Desde el celular</span>
+      </div>
+      <div class="p-stat">
+        <span class="p-stat-num">∞</span>
+        <span class="p-stat-label">Acceso de por vida</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- RESULTS -->
+<section class="results reveal">
+  <h2>La IA <em>sí funciona.</em><br>Los números lo prueban.</h2>
+  <p class="results-sub">Resultados reales de creadores que aplican estas estrategias</p>
+
+  <div class="results-grid">
+    <div class="result-card">
+      <span class="result-num">10x</span>
+      <span class="result-label">Más contenido</span>
+      <p class="result-desc">En el mismo tiempo que antes creabas uno, ahora creas diez</p>
+    </div>
+    <div class="result-card">
+      <span class="result-num">$0</span>
+      <span class="result-label">En diseñadores</span>
+      <p class="result-desc">Imágenes y videos profesionales sin contratar a nadie</p>
+    </div>
+    <div class="result-card">
+      <span class="result-num">3s</span>
+      <span class="result-label">Para enganchar</span>
+      <p class="result-desc">Hooks con IA que detienen el scroll desde los primeros segundos</p>
+    </div>
+  </div>
+
+  <div class="testimonials">
+    <p class="testi-label">Lo que dicen nuestros alumnos · Primeros resultados</p>
+    <div class="testi-grid">
+      <div class="testi-card">
+        <div class="testi-stars">★★★★★</div>
+        <p class="testi-text">"En una semana ya tenía mis primeras imágenes con IA para mi negocio. Increíble lo fácil que es con los prompts que dan."</p>
+        <span class="testi-author">María G. · Dueña de negocio</span>
+      </div>
+      <div class="testi-card">
+        <div class="testi-stars">★★★★★</div>
+        <p class="testi-text">"Por fin entendí cómo usar la IA para mis Reels. Mi contenido ahora se ve profesional y lo hago desde el celular."</p>
+        <span class="testi-author">Carlos R. · Creador de contenido</span>
+      </div>
+      <div class="testi-card">
+        <div class="testi-stars">★★★★★</div>
+        <p class="testi-text">"El módulo de ManyChat solo ya valió el precio. Estoy vendiendo en automático mientras duermo."</p>
+        <span class="testi-author">Daniela M. · Emprendedora</span>
       </div>
     </div>
   </div>
@@ -924,15 +1363,19 @@
       <div class="bonus-item"><span>→</span> Checklist de lanzamiento de contenido</div>
     </div>
 
-    <a href="#" class="btn-full">Quiero acceso ahora →</a>
+    <a href="creia-auth.html" class="btn-full">Quiero acceso ahora →</a>
     <p class="guarantee">🔒 Pago seguro · Acceso inmediato al registrarte</p>
   </div>
 </section>
 
-<!-- SOCIAL PROOF placeholder -->
-<section class="social reveal">
-  <p>Próximamente</p>
-  <h3>"Los primeros resultados hablan solos."</h3>
+<!-- FINAL CTA -->
+<section class="final-cta reveal">
+  <h2>Empieza hoy.<br><em>Crece mañana.</em></h2>
+  <p>La IA no espera. Cada día que no la usas, otros creadores se adelantan. Únete a CreIA y empieza a crear contenido profesional desde tu celular hoy mismo.</p>
+  <div class="final-cta-group">
+    <a href="creia-auth.html" class="btn-primary" style="font-size:1rem;padding:1.2rem 3rem;">Quiero mi acceso ahora →</a>
+    <span class="final-price">$47 · Pago único · Acceso de por vida</span>
+  </div>
 </section>
 
 <!-- FAQ -->
@@ -969,6 +1412,27 @@
 </footer>
 
 <script>
+  // Countdown timer — 7 días desde hoy
+  const endDate = new Date();
+  endDate.setDate(endDate.getDate() + 7);
+  endDate.setHours(23, 59, 59, 0);
+
+  function updateCountdown() {
+    const now = new Date();
+    const diff = endDate - now;
+    if (diff <= 0) return;
+    const d = Math.floor(diff / 86400000);
+    const h = Math.floor((diff % 86400000) / 3600000);
+    const m = Math.floor((diff % 3600000) / 60000);
+    const s = Math.floor((diff % 60000) / 1000);
+    document.getElementById('cd-d').textContent = String(d).padStart(2,'0');
+    document.getElementById('cd-h').textContent = String(h).padStart(2,'0');
+    document.getElementById('cd-m').textContent = String(m).padStart(2,'0');
+    document.getElementById('cd-s').textContent = String(s).padStart(2,'0');
+  }
+  updateCountdown();
+  setInterval(updateCountdown, 1000);
+
   // Scroll reveal
   const reveals = document.querySelectorAll('.reveal');
   const observer = new IntersectionObserver((entries) => {
